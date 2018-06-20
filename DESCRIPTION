@@ -1,0 +1,12 @@
+Package: modern
+Title: Model-free outlier detection for robust network inference
+Version: 0.0.0.9000
+Authors@R: person("Michael", "Skinnider", email = "michaelskinnider@gmail.com", role = c("aut", "cre"))
+Description: modern is a method to detect outliers in high-dimensional data based on their impact on network reconstruction. The core idea is that the topology of the network reconstructed from a matrix of data should be robust to the inclusion or exclusion of each individual data point in the matrix. Single points that have a large impact on the global interaction profile of a node (e.g., a gene, protein, or metabolite) compromise the robustness of network inference, and are likely to be outliers. The degree to which a single point compromises the robustness of the network inference is quantified using autocorrelation. For each observation of a given node, the correlations between that node and all of its possible neighbors in the network are calculated with and without the inclusion of that observation. This yields two vectors of correlation coefficients. The correlation between these vectors, or autocorrelation, reflects the impact of the observation on the global interaction profile of that node, where a low correlation is indicative of network inference that is strongly dependent on the inclusion or exclusion of that single data point. This situation is reflective of a likely outlier that compromises the robustness of network inference.
+Depends: R (>= 3.4.0)
+Imports: progress (>= 1.1.2),
+	purrr (>= 0.2.4)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
