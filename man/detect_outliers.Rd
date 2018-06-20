@@ -22,17 +22,19 @@ can be abbreviated}
 }
 \value{
 a matrix with identical dimensions to the input matrix, containing
-  the autocorrelation for each non-missing observation
+  the autocorrelation Z score assigned to each non-missing observation
 }
 \description{
 \code{modern} is a method to detect outliers in high-dimensional data
 based on their impact on network reconstruction.
-The key idea is that the topology of the network reconstructed from a
+The core idea is that the topology of the network reconstructed from a
 matrix of data should be robust to the inclusion or exclusion of each 
 individual data point in the matrix.
 Single points that have a large impact on the global interaction profile
 of a node (e.g., a gene, protein, or metabolite) compromise the robustness
-of network inference, and are likely to be outliers. 
+of network inference, and are likely to be outliers.
+}
+\details{
 The degree to which a single point compromises the robustness of the network
 inference is quantified using autocorrelation. 
 For each observation of a given node, the correlations between that node and
@@ -45,4 +47,9 @@ where a low correlation is indicative of network inference that is strongly
 dependent on the inclusion or exclusion of that single data point. 
 This situation is reflective of a likely outlier that compromises the 
 robustness of network inference.
+
+The matrix of autocorrelations is subsequently converted to a matrix of 
+Z scores, such that the matrix has a mean of zero and a standard deviation
+of one. If the matrix contains missing values, this scaling is performed for 
+each group of columns with equivalent numbers of missing values separately.
 }

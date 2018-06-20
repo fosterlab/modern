@@ -8,6 +8,7 @@
 #' Single points that have a large impact on the global interaction profile
 #' of a node (e.g., a gene, protein, or metabolite) compromise the robustness
 #' of network inference, and are likely to be outliers. 
+#' 
 #' The degree to which a single point compromises the robustness of the network
 #' inference is quantified using autocorrelation. 
 #' For each observation of a given node, the correlations between that node and
@@ -21,6 +22,11 @@
 #' This situation is reflective of a likely outlier that compromises the 
 #' robustness of network inference. 
 #' 
+#' The matrix of autocorrelations is subsequently converted to a matrix of 
+#' Z scores, such that the matrix has a mean of zero and a standard deviation
+#' of one. If the matrix contains missing values, this scaling is performed for 
+#' each group of columns with equivalent numbers of missing values separately.
+#' 
 #' @param mat a numeric matrix, with nodes (e.g., analytes such as genes, 
 #'   proteins, or metabolites) in columns, and samples in rows
 #' @param min_pairs minimum number of paired, non-missing observations 
@@ -32,45 +38,30 @@
 #'   can be abbreviated  
 #' 
 #' @return a matrix with identical dimensions to the input matrix, containing
-#'   the autocorrelation for each non-missing observation 
+#'   the autocorrelation Z score assigned to each non-missing observation 
 #'   
+#' @importFrom purrr %>%
 #' @export
 detect_outliers = function(mat, min_pairs = 10,
                            method = c("pearson", "kendall", "spearman")) {
   method = match.arg(method)
   
-  # first, calculate baseline correlations 
-  cor1 = cor(mat, method = method, use = 'pairwise.complete.obs')
-  ## censor correlations with too few pairs
-  n1 = crossprod(!is.na(mat))
-  cor1[n1 < min_pairs] = NA
+  # calculate autocorrelations
+  autocor = calculate_autocorrelation(mat, min_pairs, method)
 
-  # systematically remove each point and calculate autocorrelation
-  autocor = mat
-  autocor[] = NA
-  nodes = colnames(mat)
-  pb = progress::progress_bar$new(
-    format = "node :what [:bar] :percent eta: :eta",
-    clear = F, total = ncol(mat), width = 80)
-  for (i in seq_len(ncol(mat))) {
-    vec = mat[, i]
-    observations = which(!is.na(vec))
-    autocors = purrr::map_dbl(observations, function(index) {
-      # remove observation 
-      vec0 = vec
-      vec0[index] = NA
-      # recalculate correlations without observations 
-      cor2 = cor(mat[, -i], vec0, method = method, 
-                 use = 'pairwise.complete.obs')
-      # calculate autocorrelation
-      autocor = cor(cor2, cor1[-i, i], use = 'pairwise.complete.obs')
-    })
-    # insert autocorrelations into matrix
-    autocor[observations, i] = autocors
-    # tick progress bar
-    pb$tick(tokens = list(what = sprintf(
-      paste0("%-", nchar(ncol(mat)), "s"), i)))
-  }
+  # convert to Z scores, grouping nodes by # of missing values
+  z = autocor %>% 
+    reshape2::melt(varnames = c("sample", "node")) %>%
+    dplyr::group_by(node) %>%
+    dplyr::mutate(n_obs = sum(!is.na(value))) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(n_obs) %>%
+    dplyr::mutate(z = (value - mean(value, na.rm = T)) / 
+                    sd(value, na.rm = T)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(sample, node, z) %>%
+    dplyr::rename(value = z) %>%
+    reshape2::acast(sample ~ node)
   
-  return(autocor)
+  return(z)
 }
