@@ -44,41 +44,17 @@
 #' @return a matrix with identical dimensions to the input matrix, containing
 #'   the autocorrelation Z score assigned to each non-missing observation 
 #'   
-#' @importFrom purrr %>%
-#' @importFrom mltools bin_data
 #' @export
-detect_outliers = function(mat, min_pairs = 10,
+detect_outliers = function(mat, min_pairs = 20,
                            method = c("pearson", "kendall", "spearman"),
                            bins = NA) {
   method = match.arg(method)
   
   # calculate autocorrelations
   autocor = calculate_autocorrelation(mat, min_pairs, method)
-
-  # melt to a long data frame
-  long = autocor %>% 
-    reshape2::melt(varnames = c("sample", "node")) %>%
-    dplyr::group_by(node) %>%
-    dplyr::mutate(n_obs = sum(!is.na(value))) %>%
-    ungroup()
   
-  # if there are more bins than missing value counts, bin missing values
-  if (!is.na(bins) & dplyr::n_distinct(long$n_obs) > bins) {
-    long %<>% mutate(group = mltools::bin_data(
-      n_obs, bins = bins, binType = 'quantile'))
-  } else {
-    long %<>% mutate(group = n_obs)
-  }
-  
-  # convert to Z scores, grouping nodes by # of missing values
-  z = long %>% 
-    group_by(group) %>%
-    dplyr::mutate(z = (value - mean(value, na.rm = T)) / 
-                    sd(value, na.rm = T)) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(sample, node, z) %>%
-    dplyr::rename(value = z) %>%
-    reshape2::acast(sample ~ node)
+  # calculate z scores
+  z = calculate_z_scores(autocor, bins)
   
   return(z)
 }
