@@ -5,7 +5,7 @@
 \title{Detect outliers by network reconstruction}
 \usage{
 detect_outliers(mat, min_pairs = 10, method = c("pearson", "kendall",
-  "spearman"))
+  "spearman"), bins = NA)
 }
 \arguments{
 \item{mat}{a numeric matrix, with nodes (e.g., analytes such as genes, 
@@ -19,6 +19,9 @@ fewer than this number of paired observations will be replaced with
 \item{method}{the correlation coefficient to be computed; one of 
 \code{"pearson"} (default), \code{"kendall"}, or \code{"spearman"}; 
 can be abbreviated}
+
+\item{bins}{optionally, the number of bins into which to group nodes on the
+basis of the number of observations}
 }
 \value{
 a matrix with identical dimensions to the input matrix, containing
@@ -52,4 +55,7 @@ The matrix of autocorrelations is subsequently converted to a matrix of
 Z scores, such that the matrix has a mean of zero and a standard deviation
 of one. If the matrix contains missing values, this scaling is performed for 
 each group of columns with equivalent numbers of missing values separately.
+Optionally, if there are many possible numbers of missing values, the z score
+can be calculated for approximately equal sized bins of missing value counts
+using the \code{bins} parameter.
 }

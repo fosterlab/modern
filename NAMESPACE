@@ -2,4 +2,6 @@
 
 export(calculate_autocorrelation)
 export(detect_outliers)
+export(iglewicz_hoaglin)
+importFrom(mltools,bin_data)
 importFrom(purrr,"%>%")
