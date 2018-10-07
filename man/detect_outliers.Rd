@@ -4,7 +4,7 @@
 \alias{detect_outliers}
 \title{Detect outliers by network reconstruction}
 \usage{
-detect_outliers(mat, min_pairs = 20, method = c("pearson", "kendall",
+detect_outliers(mat, min_pairs = 10, method = c("pearson", "kendall",
   "spearman"), bins = NA)
 }
 \arguments{

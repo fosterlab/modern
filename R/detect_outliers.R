@@ -45,7 +45,7 @@
 #'   the autocorrelation Z score assigned to each non-missing observation 
 #'   
 #' @export
-detect_outliers = function(mat, min_pairs = 20,
+detect_outliers = function(mat, min_pairs = 10,
                            method = c("pearson", "kendall", "spearman"),
                            bins = NA) {
   method = match.arg(method)

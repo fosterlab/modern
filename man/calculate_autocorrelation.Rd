@@ -4,7 +4,7 @@
 \alias{calculate_autocorrelation}
 \title{Calculate autocorrelation after removal of each observation}
 \usage{
-calculate_autocorrelation(mat, min_pairs = 20, method = c("pearson",
+calculate_autocorrelation(mat, min_pairs = 10, method = c("pearson",
   "kendall", "spearman"))
 }
 \arguments{
