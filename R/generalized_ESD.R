@@ -16,13 +16,18 @@
 #'   to \code{5}
 #' @param alpha type I error associated with the hypothesis test; 
 #'   defaults to \code{0.05}
+#' @param return_statistics optionally return the test statistics associated
+#'   with the top \code{max_outliers} outliers
 #' 
 #' @return a vector of the same length as the input, with outliers masked
+#'   (or, if \code{return_scores} is true, the test statistics of the top
+#'   \code{max_outliers} observations)
 #' 
 #' @importFrom purrr map_dbl
 #' 
 #' @export
-generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
+generalized_ESD = function(x, max_outliers = 5, alpha = 0.05, 
+                           return_statistics = T) {
   # check input
   if (!is.numeric(x)) 
     stop("could not identify outliers: input is not numeric")  
@@ -57,12 +62,22 @@ generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
   i = suppressWarnings(max(which(statistics > lambdas), na.rm = T))
   
   if (is.finite(i)) {
-    # return masked vector
-    x0 = x
-    remove = outliers[seq_len(i)]
-    x0[remove] = NA
-    return(x0)
+    if (return_statistics) {
+      x0 = rep(NA, length(x))
+      x0[outliers[seq_len(i)]] = statistics[seq_len(i)]
+      return(x0)
+    } else {
+      # return masked vector
+      x0 = x
+      remove = outliers[seq_len(i)]
+      x0[remove] = NA
+      return(x0)
+    }
   } else {
-    return(x)
+    if (return_statistics) {
+      return(rep(NA, length(x)))  
+    } else {
+      return(x)
+    }
   }
 }

@@ -4,7 +4,8 @@
 \alias{generalized_ESD}
 \title{Detect outliers using the generalized Extreme Studentized Deviate test}
 \usage{
-generalized_ESD(x, max_outliers = 5, alpha = 0.05)
+generalized_ESD(x, max_outliers = 5, alpha = 0.05,
+  return_statistics = T)
 }
 \arguments{
 \item{x}{distribution to find outliers in}
@@ -14,9 +15,14 @@ to \code{5}}
 
 \item{alpha}{type I error associated with the hypothesis test; 
 defaults to \code{0.05}}
+
+\item{return_statistics}{optionally return the test statistics associated
+with the top \code{max_outliers} outliers}
 }
 \value{
 a vector of the same length as the input, with outliers masked
+  (or, if \code{return_scores} is true, the test statistics of the top
+  \code{max_outliers} observations)
 }
 \description{
 Identify outliers within a distribution of numeric values using

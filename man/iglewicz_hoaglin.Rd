@@ -4,14 +4,22 @@
 \alias{iglewicz_hoaglin}
 \title{Detect outliers using the modified Z score method of Iglewicz and Hoaglin}
 \usage{
-iglewicz_hoaglin(x)
+iglewicz_hoaglin(x, threshold = 3.5, return_scores = F)
 }
 \arguments{
 \item{x}{distribution to find outliers in}
+
+\item{threshold}{absolute value of the modified z score threshold above which
+to consider a value an outlier; defaults to \code{3.5} on the 
+recommendation of Iglewicz and Hoaglin}
+
+\item{return_scores}{optionally, return the modified z score of each 
+observation instead of a masked version of the input vector}
 }
 \value{
-a vector of the same length as the input, consisting of modified 
-Z scores
+a vector of the same length as the input, with outliers masked 
+  (or, if \code{return_scores} is true, the modified z scores of each 
+  observation)
 }
 \description{
 Identify outliers within a distribution of numeric values using
