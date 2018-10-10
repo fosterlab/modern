@@ -27,12 +27,20 @@ generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
     stop("could not identify outliers: input is not numeric")  
   
   # calculate test statistics
+  n_outliers = seq_len(max_outliers)
+  statistics = rep(NA, max_outliers)
   r = abs(x - mean(x, na.rm = T)) / sd(x, na.rm = T)
   idxs = order(r, decreasing = T)
+  x0 = x
+  for (i in n_outliers) {
+    statistics[i] = r[idxs[1]]
+    x0 = x0[-idxs[1]]
+    r = abs(x0 - mean(x0, na.rm = T)) / sd(x0, na.rm = T)
+    idxs = order(r, decreasing = T)
+  }
   
   # calculate critical values for each possible # of outliers
-  n_outliers = rev(seq_len(max_outliers))
-  lambdas = purrr::map_dbl(n_outliers, ~ {
+  lambdas = purrr::map_dbl(rev(n_outliers), ~ {
     i = .
     n = sum(!is.na(x))
     df = n - i - 1
@@ -42,7 +50,6 @@ generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
   })
   
   # get largest i with test statistic greater than critical value
-  statistics = r[idxs][seq_len(max_outliers)]
   i = suppressWarnings(max(which(statistics > lambdas), na.rm = T))
   
   if (is.finite(i)) {
