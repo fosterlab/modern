@@ -12,7 +12,8 @@
 #' Many-Outlier Procedure, \emph{Technometrics}, 25(2), pp. 165-172.
 #' 
 #' @param x distribution to find outliers in
-#' @param max_outliers the prespecified maximum number of outliers
+#' @param max_outliers the prespecified maximum number of outliers; defaults
+#'   to \code{5}
 #' @param alpha type I error associated with the hypothesis test; 
 #'   defaults to \code{0.05}
 #' 
@@ -29,23 +30,26 @@ generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
   # calculate test statistics
   n_outliers = seq_len(max_outliers)
   statistics = rep(NA, max_outliers)
+  outliers = rep(NA, max_outliers)
   r = abs(x - mean(x, na.rm = T)) / sd(x, na.rm = T)
   idxs = order(r, decreasing = T)
   x0 = x
   for (i in n_outliers) {
-    statistics[i] = r[idxs[1]]
-    x0 = x0[-idxs[1]]
+    idx = idxs[1]
+    outliers[i] = idx
+    statistics[i] = r[idx]
+    x0[idx] = NA
     r = abs(x0 - mean(x0, na.rm = T)) / sd(x0, na.rm = T)
     idxs = order(r, decreasing = T)
   }
   
   # calculate critical values for each possible # of outliers
-  lambdas = purrr::map_dbl(rev(n_outliers), ~ {
+  lambdas = purrr::map_dbl(n_outliers, ~ {
     i = .
     n = sum(!is.na(x))
     df = n - i - 1
     p = 1 - alpha / (2 * (n - i + 1))
-    t = qt(p, df)
+    t = suppressWarnings(qt(p, df))
     t * (n - i) / sqrt((n - i - 1 + t**2) * (n - i + 1))
   })
   
@@ -55,7 +59,8 @@ generalized_ESD = function(x, max_outliers = 5, alpha = 0.05) {
   if (is.finite(i)) {
     # return masked vector
     x0 = x
-    x0[idxs[seq_len(i)]] = NA
+    remove = outliers[seq_len(i)]
+    x0[remove] = NA
     return(x0)
   } else {
     return(x)

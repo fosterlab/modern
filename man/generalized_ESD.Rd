@@ -9,7 +9,8 @@ generalized_ESD(x, max_outliers = 5, alpha = 0.05)
 \arguments{
 \item{x}{distribution to find outliers in}
 
-\item{max_outliers}{the prespecified maximum number of outliers}
+\item{max_outliers}{the prespecified maximum number of outliers; defaults
+to \code{5}}
 
 \item{alpha}{type I error associated with the hypothesis test; 
 defaults to \code{0.05}}
