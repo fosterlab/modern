@@ -41,17 +41,22 @@
 #'   can be abbreviated  
 #' @param bins optionally, the number of bins into which to group nodes on the
 #'   basis of the number of observations
+#' @param n_splits optionally, for very large matrices, split the input into 
+#'   subsets of nodes in order to preserve RAM 
+#' 
 #' @return a matrix with identical dimensions to the input matrix, containing
 #'   the autocorrelation Z score assigned to each non-missing observation 
 #'   
 #' @export
-detect_outliers = function(mat, min_pairs = 10,
+detect_outliers = function(mat, 
+                           min_pairs = 10,
                            method = c("pearson", "kendall", "spearman"),
-                           bins = NA) {
+                           bins = NULL, 
+                           n_splits = NULL) {
   method = match.arg(method)
   
   # calculate autocorrelations
-  autocor = calculate_autocorrelation(mat, min_pairs, method)
+  autocor = calculate_autocorrelation(mat, min_pairs, method, n_splits)
   
   # calculate z scores
   z = calculate_z_scores(autocor, bins)

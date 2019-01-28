@@ -19,46 +19,76 @@
 #' @param method the correlation coefficient to be computed; one of 
 #'   \code{"pearson"} (default), \code{"kendall"}, or \code{"spearman"}; 
 #'   can be abbreviated  
+#' @param n_splits optionally, for very large matrices, split the input into 
+#'   subsets of nodes in order to preserve RAM 
 #' 
 #' @return a matrix with identical dimensions to the input matrix, containing
 #'   the autocorrelation for each non-missing observation 
 #'   
 #' @export
-calculate_autocorrelation = function(mat, min_pairs = 10,
-                           method = c("pearson", "kendall", "spearman")) {
+calculate_autocorrelation = function(
+  mat,
+  min_pairs = 10,
+  method = c("pearson", "kendall", "spearman"),
+  n_splits = NULL
+) {
   method = match.arg(method)
   
-  # first, calculate baseline correlations 
-  cor1 = cor(mat, method = method, use = 'pairwise.complete.obs')
-  ## censor correlations with too few pairs
-  n1 = crossprod(!is.na(mat))
-  cor1[n1 < min_pairs] = NA
+  # optionally, split large matrices to fit correlations into memory
+  if (missing(n_splits) | is.null(n_splits)) {
+    n_splits = 1
+    matrices = list(mat)
+  } else {
+    if (n_splits != as.integer(n_splits)) {
+      stop("n_splits is not an integer: ", n_splits)
+    }
+    nodes = colnames(mat)
+    splits = split(nodes, cut(seq_along(nodes), n_splits, labels = FALSE)) 
+    matrices = purrr::map(splits, ~ mat[, .])
+  }
   
-  # systematically remove each point and calculate autocorrelation
+  # create autocorrelation matrix
   autocor = mat
   autocor[] = NA
-  nodes = colnames(mat)
-  pb = progress::progress_bar$new(
-    format = "node :what [:bar] :percent eta: :eta",
-    clear = F, total = ncol(mat), width = 80)
-  for (i in seq_len(ncol(mat))) {
-    vec = mat[, i]
-    observations = which(!is.na(vec))
-    autocors = purrr::map_dbl(observations, function(index) {
-      # remove observation 
-      vec0 = vec
-      vec0[index] = NA
-      # recalculate correlations without observations 
-      cor2 = cor(mat[, -i], vec0, method = method, 
-                 use = 'pairwise.complete.obs')
-      # calculate autocorrelation
-      autocor = cor(cor2, cor1[-i, i], use = 'pairwise.complete.obs')
-    })
-    # insert autocorrelations into matrix
-    autocor[observations, i] = autocors
-    # tick progress bar
-    pb$tick(tokens = list(what = sprintf(
-      paste0("%-", nchar(ncol(mat)), "s"), i)))
+  
+  # process each matrix in sequence
+  for (idx in seq_along(matrices)) {
+    mat0 = matrices[[idx]]
+    if (n_splits > 1) {
+      message("working on split ", idx, " of ", n_splits, " ...")
+    }
+    
+    # first, calculate baseline correlations 
+    cor1 = cor(mat0, method = method, use = 'pairwise.complete.obs')
+    ## censor correlations with too few pairs
+    n1 = crossprod(!is.na(mat0))
+    cor1[n1 < min_pairs] = NA
+    
+    # systematically remove each point and calculate autocorrelation
+    nodes = colnames(mat0)
+    pb = progress::progress_bar$new(
+      format = "node :what [:bar] :percent eta: :eta",
+      clear = F, total = ncol(mat0), width = 80)
+    for (node_idx in seq_len(ncol(mat0))) {
+      node = colnames(mat0)[node_idx]
+      vec = mat0[, node]
+      observations = which(!is.na(vec))
+      autocors = purrr::map_dbl(observations, function(index) {
+        # remove observation 
+        vec0 = vec
+        vec0[index] = NA
+        # recalculate correlations without observations 
+        cor2 = cor(mat0[, -node_idx], vec0, method = method, 
+                   use = 'pairwise.complete.obs')
+        # calculate autocorrelation
+        autocor = cor(cor2, cor1[-node_idx, i], use = 'pairwise.complete.obs')
+      })
+      # insert autocorrelations into matrix
+      autocor[observations, node] = autocors
+      # tick progress bar
+      pb$tick(tokens = list(what = sprintf(
+        paste0("%-", nchar(ncol(mat0)), "s"), node_idx)))
+    }
   }
   
   return(autocor)
