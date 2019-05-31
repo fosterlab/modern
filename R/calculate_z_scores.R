@@ -15,6 +15,7 @@
 #'   the autocorrelation Z score assigned to each non-missing observation 
 #'   
 #' @importFrom purrr %>%
+#' @importFrom dplyr n_distinct
 #' @importFrom mltools bin_data
 #' @importFrom reshape2 melt acast
 #' 
@@ -28,8 +29,8 @@ calculate_z_scores = function(autocor, bins = NA) {
     ungroup()
   
   # if there are more bins than missing value counts, bin missing values
-  if (!is.na(bins) & dplyr::n_distinct(long$n_obs) > bins) {
-    long %<>% mutate(group = mltools::bin_data(
+  if (!is.na(bins) && !is.null(bins) && n_distinct(long$n_obs) > bins) {
+    long %<>% mutate(group = bin_data(
       n_obs, bins = bins, binType = 'quantile'))
   } else {
     long %<>% mutate(group = n_obs)

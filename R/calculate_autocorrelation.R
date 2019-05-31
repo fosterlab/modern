@@ -35,13 +35,14 @@ calculate_autocorrelation = function(
   method = match.arg(method)
   
   # optionally, split large matrices to fit correlations into memory
-  if (missing(n_splits) | is.null(n_splits)) {
+  if (is.null(n_splits) || as.integer(n_splits) == 1) {
     n_splits = 1
     matrices = list(mat)
   } else {
-    if (n_splits != as.integer(n_splits)) {
+    if (is.na(as.integer(n_splits))) {
       stop("n_splits is not an integer: ", n_splits)
     }
+    n_splits = as.integer(n_splits)
     nodes = colnames(mat)
     splits = split(nodes, cut(seq_along(nodes), n_splits, labels = FALSE)) 
     matrices = purrr::map(splits, ~ mat[, .])
@@ -81,7 +82,8 @@ calculate_autocorrelation = function(
         cor2 = cor(mat0[, -node_idx], vec0, method = method, 
                    use = 'pairwise.complete.obs')
         # calculate autocorrelation
-        autocor = cor(cor2, cor1[-node_idx, i], use = 'pairwise.complete.obs')
+        autocor = cor(cor2, cor1[-node_idx, index], 
+                      use = 'pairwise.complete.obs')
       })
       # insert autocorrelations into matrix
       autocor[observations, node] = autocors
