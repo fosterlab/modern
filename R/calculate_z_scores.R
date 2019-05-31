@@ -20,7 +20,7 @@
 #' @importFrom reshape2 melt acast
 #' 
 #' @export
-calculate_z_scores = function(autocor, bins = NA) {
+calculate_z_scores = function(autocor, bins = 1) {
   # melt to a long data frame
   long = autocor %>% 
     reshape2::melt(varnames = c("sample", "node")) %>%

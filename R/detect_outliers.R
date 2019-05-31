@@ -51,7 +51,7 @@
 detect_outliers = function(mat, 
                            min_pairs = 10,
                            method = c("pearson", "kendall", "spearman"),
-                           bins = NULL, 
+                           bins = 1, 
                            n_splits = NULL) {
   method = match.arg(method)
   
