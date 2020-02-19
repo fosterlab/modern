@@ -82,7 +82,7 @@ calculate_autocorrelation = function(
         cor2 = cor(mat0[, -node_idx], vec0, method = method, 
                    use = 'pairwise.complete.obs')
         # calculate autocorrelation
-        autocor = cor(cor2, cor1[-node_idx, index], 
+        autocor = cor(cor2, cor1[-node_idx, node_index], 
                       use = 'pairwise.complete.obs')
       })
       # insert autocorrelations into matrix
